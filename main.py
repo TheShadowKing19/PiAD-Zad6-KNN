@@ -1,5 +1,6 @@
 import math as m
 import sklearn.datasets as ds
+import numpy as np
 
 
 class knn:
@@ -16,13 +17,19 @@ class knn:
         self.n_neighbors = n_neighbors
         self.use_KDTree = use_KDTree
 
-    def fit(self, X, y):    # Obliczanie odległości między punktami. Y to pojedyńczy punkt.
-        odl = 0.0
-        for i in range(len(X)-1):
-            odl += (X[i] - y[i])**2
-        return m.sqrt(odl)
+    def fit(self, X, y):
+        """ Dopasuj punkt zbioru X do zbioru y """
+        pass
 
     def predict(self, X):
+        """ Sprawdza który z klas zbioru y jest najbliższy zbiorowi X """
+        test_point = X[0]
+        distances = []
+        np.delete(X, 0, 0)
+        for point in range(self.n_neighbors):
+
+
+
         pass
 
     def score(self, X, y):
@@ -32,4 +39,7 @@ class knn:
 if __name__ == '__main__':
     KNN = knn()
     row0 = KNN.X[0]
+    print(KNN.X, KNN.y, row0, sep='\n')
+    print(np.delete(KNN.X, 0, 0))
+
 
