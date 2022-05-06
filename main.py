@@ -23,13 +23,6 @@ class knn:
 
     def predict(self, X):
         """ Sprawdza który z klas zbioru y jest najbliższy zbiorowi X """
-        test_point = X[0]
-        distances = []
-        np.delete(X, 0, 0)
-        for point in range(self.n_neighbors):
-
-
-
         pass
 
     def score(self, X, y):
