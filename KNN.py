@@ -1,5 +1,4 @@
 import pandas as pd
-import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
@@ -35,7 +34,7 @@ def euclidean_distance(element1, element2):
     return (x_distance + y_distance)**0.5
 
 
-def get_label(neighbours, y):
+def _get_label(neighbours, y):
     """Funkcja do sprawdzenia klas dla najbliższych sąsiadów i na podstawie tej klasy, ustawienie klasy dla punktu
     testowego
 
@@ -64,23 +63,22 @@ def find_nearest(x, y, _input, k):
     Args:
         x (list): Zbiór treningowy zawierający dwie klasy
         y (list):
-        _input: Lista zawierająca klasy punktów, które chcemy sklasyfikować
+        _input (tuple or list): Lista zawierająca klasy punktów, które chcemy sklasyfikować
         k (int): Liczba najbliższych sąsiadów
 
     Returns:
         int: klasa dla punktu testowego
         list: k najbliższych sąsiadów/punktów
-        list:
+        list: k najdalszych sąsiadów/punktów
     """
     distances = []
     for id, element in enumerate(x):
         distances.append([euclidean_distance(_input, element), id])
     distances = sorted(distances)
-    predicted_label = get_label(distances[0:k], y)
+    predicted_label = _get_label(distances[0:k], y)
     return predicted_label, distances[0:k], distances[k:]
 
 
-# x, y = make_blobs(n_samples=100, n_features=2, centers=2, random_state=2)
 x, y = make_classification(
         n_samples=100,
         n_features=2,
@@ -92,12 +90,13 @@ x, y = make_classification(
 
 
 # Normalizacja danych
-x[:, 0] = min_max_normalize(x[:, 0])
-x[:, 1] = min_max_normalize(x[:, 1])
+x[:, 0] = min_max_normalize(x[:, 0])    # oś X
+x[:, 1] = min_max_normalize(x[:, 1])    # oś Y
 
 # Transformacja danych do dataframe
 df = pd.DataFrame(x, columns=['Feature1', 'Feature2'])
 df['Label'] = y
+st.title('Dane zbioru treningowego')
 st.dataframe(df)
 
 # Inicjalizacja streamlit
@@ -116,13 +115,25 @@ st.plotly_chart(fig)
 # Szukanie najbliższych sąsiadów
 predicted_label, nearest_neighbours, far_neighbours = find_nearest(x, y, _input, k)
 st.title('Predykcja')
-st.subheader('Predicted label: {}'.format(predicted_label))
+st.subheader('Przewidziana klasa: {}'.format(predicted_label))
 nearest_neighbours = [[neighbour[1], x[neighbour[1], 0], x[neighbour[1], 1], neighbour[0], y[neighbour[1]]]
                       for neighbour in nearest_neighbours]
 
 nearest_neighbours = pd.DataFrame(nearest_neighbours, columns=['Index', 'Feature1', 'Feature2', 'Distance', 'Label'])
-st.dataframe(nearest_neighbours)
+
 
 # Szukanie najdalszych sąsiadów
 far_neighbours = [[neighbour[1], x[neighbour[1], 0], x[neighbour[1], 1], neighbour[0], y[neighbour[1]]]
                   for neighbour in far_neighbours]
+far_neighbours = pd.DataFrame(far_neighbours, columns=['Index', 'Feature1', 'Feature2', 'Distance', 'Label'])
+fig2 = px.scatter(far_neighbours, x='Feature1', y='Feature2', symbol='Label', symbol_map={0: 'square-dot', 1: 'circle'})
+
+for index, neighbour in nearest_neighbours.iterrows():
+    fig2.add_trace(
+        go.Scatter(x=[_input[0], neighbour['Feature1']], y=[_input[1], neighbour['Feature2']], mode='lines+markers',
+                   name='{}'.format(neighbour['Index']), showlegend=False)
+    )
+
+st.plotly_chart(fig2)
+st.subheader('Najbliżsi sąsiedzi')
+st.dataframe(nearest_neighbours)
